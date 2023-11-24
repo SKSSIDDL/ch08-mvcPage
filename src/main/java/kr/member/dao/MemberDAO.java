@@ -105,10 +105,76 @@ public class MemberDAO {
 		
 		return member;
 	}
+	
 	//회원 상세 정보
+	public MemberVO getMember(int mem_num)throws Exception {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		String sql = null;
+		ResultSet rs = null;
+		MemberVO member = null;
+		
+		try {
+			//커넥션풀로부터 커넥션 할당
+			conn = DBUtil.getConnection();
+			//SQL문 작성
+			sql = "SELECT * FROM zmember JOIN zmember_detail USING(mem_num) WHERE mem_num=?";
+			//PreparedStatement 객체 생성
+			pstmt = conn.prepareStatement(sql);
+			//?에 데이터 바인딩
+			pstmt.setInt(1, mem_num);
+			//SQL문 실행
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+				member = new MemberVO();
+				member.setMem_num(rs.getInt("mem_num"));
+				member.setId(rs.getString("id"));
+				member.setAuth(rs.getInt("auth"));
+				member.setPasswd(rs.getString("passwd"));
+				member.setName(rs.getString("name"));
+				member.setPhone(rs.getString("phone"));
+				member.setEmail(rs.getString("email"));
+				member.setZipcode(rs.getString("zipcode"));
+				member.setAddress1(rs.getString("address1"));
+				member.setAddress2(rs.getString("address2"));
+				member.setPhoto(rs.getString("photo"));
+				member.setReg_date(rs.getDate("reg_date"));
+				member.setModify_date(rs.getDate("modify_date"));
+			}
+		}catch(Exception e) {
+			throw new Exception(e);
+		}finally {
+			DBUtil.executeClose(rs, pstmt, conn);
+		}
+		return member;
+	}
 	//회원 정보 수정
 	//비밀번호 수정
 	//프로필 사진 수정
+	public void updateMyPhoto(String photo,int mem_num)throws Exception {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		String sql = null;
+		
+		try {
+			//커넥션풀로부터 커넥션을 할당
+			conn = DBUtil.getConnection();
+			//sql문 작성
+			sql = "UPDATE zmember_detail SET photo=? WHERE mem_num=?";
+			//preparedStatement객체 생성
+			pstmt = conn.prepareStatement(sql);
+			//?에 데이터 바인딩
+			pstmt.setString(1, photo);
+			pstmt.setInt(2, mem_num);
+			//sql문 실행
+			pstmt.executeUpdate();
+		}catch(Exception e) {
+			throw new Exception(e);
+		}finally {
+			DBUtil.executeClose(null, pstmt, conn);
+		}
+	}
+	
 	//회원 탈퇴(회원정보 삭제)
 	
 	
