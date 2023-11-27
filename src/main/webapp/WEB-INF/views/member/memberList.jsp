@@ -13,7 +13,7 @@
 		<jsp:include page="/WEB-INF/views/common/header.jsp"/>
 		<div class="content-main">
 			<h2>회원목록(관리자 전용)</h2>
-			<form id="search_form" action="memberList.do" method="get"><%-- 저장이 아니라 단순히 검색하는 경우에는 get방식 사용 --%>
+			<form id="search_form" action="adminList.do" method="get"><%-- 저장이 아니라 단순히 검색하는 경우에는 get방식 사용 --%>
 				<ul class="search">
 					<li>
 						<select name="keyfield">
