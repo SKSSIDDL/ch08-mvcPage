@@ -33,7 +33,7 @@ public class LoginAction implements Action{
 			session.setAttribute("user_num", vo.getMem_num());
 			session.setAttribute("user_id", vo.getId());
 			session.setAttribute("user_auth", vo.getAuth());
-			session.setAttribute("user_phote", vo.getPhoto());
+			session.setAttribute("user_photo", vo.getPhoto());
 			return "redirect:/main/main.do"; //메인으로 리다이렉트 하기
 		}
 		
