@@ -266,13 +266,28 @@ public class MemberDAO {
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		String sql = null;
-		String sub_sql = "";
+		String sub_sql = ""; //검색용도(keyword가 있을 경우)
 		int count = 0;
 		
 		try {
 			conn = DBUtil.getConnection();
-			sql = "SELECT COUNT(*) FROM zmember";
+			if(keyword!=null && !"".equals(keyword)) {
+				//검색 처리
+				if(keyfield.equals("1")) { //아이디에서 검색
+					sub_sql += "WHERE id LIKE ?";
+				}else if(keyfield.equals("2")){ //이름으로 검색
+					sub_sql += "WHERE name LIKE ?";
+				}else if(keyfield.equals("3")) { //이메일로 검색
+					sub_sql += "WHERE email LIKE ?";
+				}
+			}
+			sql = "SELECT COUNT(*) FROM zmember LEFT OUTER JOIN zmember_detail USING(mem_num) " + sub_sql;
 			pstmt = conn.prepareStatement(sql);
+			
+			if(keyword!=null && !"".equals(keyword)) {
+				pstmt.setString(1, "%"+keyword+"%");
+			}
+			
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
 				count = rs.getInt(1);
@@ -299,11 +314,26 @@ public class MemberDAO {
 		
 		try {
 			conn = DBUtil.getConnection();
+			if(keyword!=null && !"".equals(keyword)) {
+				//검색 처리
+				if(keyfield.equals("1")) {
+					sub_sql += "WHERE id LIKE ?";
+				}else if(keyfield.equals("2")) {
+					sub_sql += "WHERE name LIKE ?";
+				}else if(keyfield.equals("3")) {
+					sub_sql += "WHERE email LIKE ?";
+				}
+			}
 			sql ="SELECT * FROM (SELECT a.*, rownum rnum FROM (SELECT * FROM zmember m LEFT OUTER JOIN zmember_detail d "
-					+ "ON m.mem_num = d.mem_num ORDER BY m.mem_num DESC NULLS LAST)a) WHERE rnum>=? AND rnum<=?";
+					+ "ON m.mem_num = d.mem_num "+ sub_sql +" ORDER BY m.mem_num DESC NULLS LAST)a) WHERE rnum>=? AND rnum<=?";
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1, start);
-			pstmt.setInt(2, end);
+			
+			if(keyword!=null && !"".equals(keyword)) {
+				pstmt.setString(++cnt, "%"+keyword+"%");
+			}
+			
+			pstmt.setInt(++cnt, start);
+			pstmt.setInt(++cnt, end);
 			rs = pstmt.executeQuery();
 			
 			list = new ArrayList<MemberVO>();
@@ -333,5 +363,22 @@ public class MemberDAO {
 		return list;
 	}
 	//회원 등급 수정
-	
+	public void updateMemberByAdmin(int auth, int mem_num)throws Exception{
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		String sql = null;
+		
+		try{
+			conn = DBUtil.getConnection();
+			sql="UPDATE zmember SET auth=? WHERE mem_num=?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, auth);
+			pstmt.setInt(2, mem_num);
+			pstmt.executeUpdate();
+		}catch(Exception e) {
+			throw new Exception(e);
+		}finally {
+			DBUtil.executeClose(null, pstmt, conn);
+		}
+	}
 }
