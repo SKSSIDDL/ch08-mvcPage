@@ -20,33 +20,41 @@ public class BoardDAO {
 		return instance;
 	}
 	
-	private BoardDAO () {}
+	private BoardDAO() {}
 	
 	//글 등록
-	public void insertBoard(BoardVO board)throws Exception {
+	public void insertBoard(BoardVO board)throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		String sql = null;
 		
 		try {
+			//커넥션푸로부터 커넥션 할당
 			conn = DBUtil.getConnection();
-			sql ="INSERT INTO zboard (board_num,title,content,filename,ip,mem_num) VALUES (zboard_seq.nextval,?,?,?,?,?)";
+			//SQL문 작성
+			sql = "INSERT INTO zboard (board_num,title,content,"
+				+ "filename,ip,mem_num) VALUES (zboard_seq.nextval,"
+				+ "?,?,?,?,?)";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
+			//?에 데이터 바인딩
 			pstmt.setString(1, board.getTitle());
 			pstmt.setString(2, board.getContent());
 			pstmt.setString(3, board.getFilename());
 			pstmt.setString(4, board.getIp());
 			pstmt.setInt(5, board.getMem_num());
+			//SQL문 실행
 			pstmt.executeUpdate();
 		}catch(Exception e) {
-			throw new Exception(e);
+			new Exception(e);
 		}finally {
 			DBUtil.executeClose(null, pstmt, conn);
 		}
 	}
 	
-	//전체 레코드수/검색 레코드 수
-	public int getBoardCount(String keyfield,String keyword)throws Exception{
+	//전체 레코드수/검색 레코드수
+	public int getBoardCount(String keyfield,String keyword)
+	                                        throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -55,18 +63,18 @@ public class BoardDAO {
 		int count = 0;
 		
 		try {
+			//커넥션풀로부터 커넥션 할당
 			conn = DBUtil.getConnection();
-			if(keyword != null && !"".equals(keyword)) {
+			
+			if(keyword!=null && !"".equals(keyword)) {
 				//검색 처리
-				if(keyfield.equals("1")) {
-					sub_sql += "WHERE title LIKE ?";
-				}else if(keyfield.equals("2")) {
-					sub_sql += "WHERE id LIKE ?";
-				}else if(keyfield.equals("3")) {
-					sub_sql += "WHERE content LIKE ?";
-				}
+				if(keyfield.equals("1")) sub_sql += "WHERE title LIKE ?";
+				else if(keyfield.equals("2")) sub_sql += "WHERE id LIKE ?";
+				else if(keyfield.equals("3")) sub_sql += "WHERE content LIKE ?";
 			}
+			//SQL문 작성
 			sql = "SELECT COUNT(*) FROM zboard JOIN zmember USING(mem_num) " + sub_sql;
+			//PreparedStatement 객체
 			pstmt = conn.prepareStatement(sql);
 			if(keyword != null && !"".equals(keyword)) {
 				pstmt.setString(1, "%"+keyword+"%");
@@ -76,17 +84,18 @@ public class BoardDAO {
 			if(rs.next()) {
 				count = rs.getInt(1);
 			}
-			
 		}catch(Exception e) {
 			throw new Exception(e);
 		}finally {
 			DBUtil.executeClose(rs, pstmt, conn);
-		}
+		}		
 		return count;
 	}
 	
 	//전체 글/검색 글 목록
-	public List<BoardVO> getlistBoard(int start, int end, String keyfield, String keyword)throws Exception{
+	public List<BoardVO> getListBoard(int start, int end,
+			               String keyfield, String keyword)
+	                                     throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -96,36 +105,34 @@ public class BoardDAO {
 		int cnt = 0;
 		
 		try {
+			//커넥션풀로부터 커넥션 할당
 			conn = DBUtil.getConnection();
 			
 			if(keyword!=null && !"".equals(keyword)) {
-				//검색처리
-				if(keyfield.equals("1")) {
-					sub_sql += "WHERE title LIKE ?";
-				}else if(keyfield.equals("2")) {
-					sub_sql += "WHERE id LIKE ?";
-				}else if(keyfield.equals("3")) {
-					sub_sql += "WHERE content LIKE ?";
-				}
+				//검색 처리
+				if(keyfield.equals("1")) sub_sql += "WHERE title LIKE ?";
+				else if(keyfield.equals("2")) sub_sql += "WHERE id LIKE ?";
+				else if(keyfield.equals("3")) sub_sql += "WHERE content LIKE ?";
 			}
-			
-			sql = "SELECT * FROM (SELECT a.*, rownum rnum FROM (SELECT * FROM zboard JOIN zmember USING(mem_num) "
-				   + sub_sql + " ORDER BY board_num DESC)a) WHERE rnum>=? AND rnum<=?";
-			
+			//SQL문 작성
+			sql = "SELECT * FROM (SELECT a.*, rownum rnum FROM "
+				+ "(SELECT * FROM zboard JOIN zmember USING(mem_num) " + sub_sql
+				+ " ORDER BY board_num DESC)a) WHERE rnum >= ? AND rnum <= ?";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
-			
 			if(keyword != null && !"".equals(keyword)) {
 				pstmt.setString(++cnt, "%"+keyword+"%");
 			}
 			pstmt.setInt(++cnt, start);
 			pstmt.setInt(++cnt, end);
 			
+			//SQL문 실행
 			rs = pstmt.executeQuery();
 			list = new ArrayList<BoardVO>();
 			while(rs.next()) {
 				BoardVO board = new BoardVO();
 				board.setBoard_num(rs.getInt("board_num"));
-				//HTML을 허용하지 않음
+				//HTML를 허용하지 않음
 				board.setTitle(StringUtil.useNoHtml(rs.getString("title")));
 				board.setHit(rs.getInt("hit"));
 				board.setReg_date(rs.getDate("reg_date"));
@@ -142,21 +149,28 @@ public class BoardDAO {
 		return list;
 	}
 	
-	//글 상세 - 조회수 증가랑 연관有
+	//글 상세
 	public BoardVO getBoard(int board_num)throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		String sql = null;
 		BoardVO board = null;
+		String sql = null;
 		
 		try {
+			//커넥션풀로부터 커넥션을 할당
 			conn = DBUtil.getConnection();
-			//sql문 작성 주의 (회원탈퇴하면 zmember_detail의 레코드가 존재하지 않기 때문에 외부 join을 사용해서 데이터 누락 방지)
-			sql = "SELECT * FROM zboard JOIN zmember USING(mem_num) "
-					+ "LEFT OUTER JOIN zmember_detail USING(mem_num) WHERE board_num=?";
+			//SQL문 작성
+			//(주의)회원탈퇴하면 zmember_detail의 레코드가 존재하지 않기
+			//때문에 외부 조인을 사용해서 데이터 누락 방지
+			sql="SELECT * FROM zboard JOIN zmember USING(mem_num) "
+			   + "LEFT OUTER JOIN zmember_detail USING(mem_num) "
+			   + "WHERE board_num=?";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
+			//?에 데이터 바인딩
 			pstmt.setInt(1, board_num);
+			//SQL문 실행
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
 				board = new BoardVO();
@@ -175,21 +189,26 @@ public class BoardDAO {
 			throw new Exception(e);
 		}finally {
 			DBUtil.executeClose(rs, pstmt, conn);
-		}
+		}		
 		return board;
 	}
 	
-	//조회수 증가(detail로 들어가면 무조건 조회수 1 증가)
+	//조회수 증가
 	public void updateReadCount(int board_num)throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		String sql = null;
 		
 		try {
+			//커넥션풀로부터 커넥션 할당
 			conn = DBUtil.getConnection();
+			//SQL문 작성
 			sql = "UPDATE zboard SET hit=hit+1 WHERE board_num=?";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
+			//?에 데이터 바인딩
 			pstmt.setInt(1, board_num);
+			//SQL문 실행
 			pstmt.executeUpdate();
 		}catch(Exception e) {
 			throw new Exception(e);
@@ -199,16 +218,21 @@ public class BoardDAO {
 	}
 	
 	//파일 삭제
-	public void deleteFile(int board_num)throws Exception {
+	public void deleteFile(int board_num)throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		String sql = null;
 		
 		try {
+			//커넥션풀로부터 커넥션 할당
 			conn = DBUtil.getConnection();
-			sql = "UPDATE zboard SET filename='' WHERE board_num=?"; //업데이트 해서 데이터가 없는 것 처럼
+			//SQL문 작성
+			sql = "UPDATE zboard SET filename='' WHERE board_num=?";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
+			//?에 데이터를 바인딩
 			pstmt.setInt(1, board_num);
+			//SQL문 실행
 			pstmt.executeUpdate();
 		}catch(Exception e) {
 			throw new Exception(e);
@@ -217,7 +241,7 @@ public class BoardDAO {
 		}
 	}
 	
-	//글 수정(제목,내용,파일)
+	//글 수정
 	public void updateBoard(BoardVO board)throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
@@ -225,15 +249,18 @@ public class BoardDAO {
 		String sub_sql = "";
 		int cnt = 0;
 		
-		try{
+		try {
+			//커넥션풀로부터 커넥션 할당
 			conn = DBUtil.getConnection();
-			//파일의 유무 조건체크
-			if(board.getFilename()!= null) { //파일이 있으면
+			
+			if(board.getFilename()!=null) {
 				sub_sql += ",filename=?";
 			}
-			sql = "UPDATE zboard SET title=?,content=?,modify_date=SYSDATE,ip=?" 
-					+ sub_sql + " WHERE board_num=?";
+			//SQL문 작성
+			sql = "UPDATE zboard SET title=?,content=?,modify_date=SYSDATE,ip=?" + sub_sql + " WHERE board_num=?";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
+			//?에 데이터 바인딩
 			pstmt.setString(++cnt, board.getTitle());
 			pstmt.setString(++cnt, board.getContent());
 			pstmt.setString(++cnt, board.getIp());
@@ -241,12 +268,14 @@ public class BoardDAO {
 				pstmt.setString(++cnt, board.getFilename());
 			}
 			pstmt.setInt(++cnt, board.getBoard_num());
+			//SQL문 실행
 			pstmt.executeUpdate();
 		}catch(Exception e) {
 			throw new Exception(e);
 		}finally {
 			DBUtil.executeClose(null, pstmt, conn);
 		}
+		
 	}
 	
 	//글 삭제
@@ -258,28 +287,34 @@ public class BoardDAO {
 		String sql = null;
 		
 		try {
+			//커넥션풀로부터 커넥션 할당
 			conn = DBUtil.getConnection();
-			//auto commit 해제(sql문이 3개이기 때문)
+			//오토커밋 해제
 			conn.setAutoCommit(false);
 			
 			//좋아요 삭제
-			sql ="DELETE FROM zboard_fav WHERE board_num=?";
+			sql = "DELETE FROM zboard_fav WHERE board_num=?";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, board_num);
 			pstmt.executeUpdate();
-			//댓글 삭제
+			
+			//댓글 삭제 (글이 부모고 댓글이 자식이라 글이 삭제되면 댓글도 삭제되어야 함)
+			sql = "DELETE FROM zboard_reply WHERE board_num=?";
+			pstmt2 = conn.prepareStatement(sql);
+			pstmt2.setInt(1, board_num);
+			pstmt2.executeUpdate();
+			
 			
 			//부모글 삭제
-			sql ="DELETE FROM zboard WHERE board_num=?";
+			sql = "DELETE FROM zboard WHERE board_num=?";
 			pstmt3 = conn.prepareStatement(sql);
 			pstmt3.setInt(1, board_num);
 			pstmt3.executeUpdate();
 			
-			//모든 SQL문 실행이 성공
+			//모든 SQL문 실행이 성공하면
 			conn.commit();
-			
 		}catch(Exception e) {
-			//SQL 하나라도 실패했을 경우
+			//하나라도 SQL문이 실패하면
 			conn.rollback();
 			throw new Exception(e);
 		}finally {
@@ -289,19 +324,24 @@ public class BoardDAO {
 		}
 	}
 	
-	
 	//좋아요 등록
-	public void insertFav(BoardFavVO favVO)throws Exception {
+	public void insertFav(BoardFavVO favVO)throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		String sql = null;
 		
 		try {
+			//커넥션풀로부터 커넥션 할당
 			conn = DBUtil.getConnection();
-			sql = "INSERT INTO zboard_fav (board_num,mem_num) VALUES (?,?)";
+			//SQL문 작성
+			sql = "INSERT INTO zboard_fav (board_num,mem_num) "
+				+ "VALUES (?,?)";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
+			//?에 데이터를 바인딩
 			pstmt.setInt(1, favVO.getBoard_num());
 			pstmt.setInt(2, favVO.getMem_num());
+			//SQL문 실행
 			pstmt.executeUpdate();
 		}catch(Exception e) {
 			throw new Exception(e);
@@ -319,62 +359,77 @@ public class BoardDAO {
 		int count = 0;
 		
 		try {
+			//커넥션풀로부터 커넥션 할당
 			conn = DBUtil.getConnection();
+			//SQL문 작성
 			sql = "SELECT COUNT(*) FROM zboard_fav WHERE board_num=?";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
+			//?에 데이터 바인딩
 			pstmt.setInt(1, board_num);
+			//SQL문 실행
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
-				count = rs.getInt(1); //컬럼 인덱스
-			}
+				count = rs.getInt(1);
+			}			
 		}catch(Exception e) {
 			throw new Exception(e);
 		}finally {
 			DBUtil.executeClose(rs, pstmt, conn);
-		}
+		}		
 		return count;
 	}
+	
 	//회원번호와 게시물 번호를 이용한 좋아요 정보(좋아요 선택 여부)
 	public BoardFavVO selectFav(BoardFavVO favVO)throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		BoardFavVO fav = null; //자바빈
+		BoardFavVO fav = null;
 		String sql = null;
 		
 		try {
+			//커넥션풀로부터 커넥션을 할당
 			conn = DBUtil.getConnection();
-			sql="SELECT * FROM zboard_fav WHERE board_num=? AND mem_num=?"; //좋아요를 실행하면 행이 생김, 안하면 행 존재하지 않음
+			//SQL문 작성
+			sql = "SELECT * FROM zboard_fav WHERE board_num=? AND mem_num=?";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
+			//?에 데이터 바인딩
 			pstmt.setInt(1, favVO.getBoard_num());
 			pstmt.setInt(2, favVO.getMem_num());
+			//SQL문 실행
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
 				fav = new BoardFavVO();
 				fav.setBoard_num(rs.getInt("board_num"));
 				fav.setMem_num(rs.getInt("mem_num"));
 			}
-			
 		}catch(Exception e) {
 			throw new Exception(e);
 		}finally {
 			DBUtil.executeClose(rs, pstmt, conn);
-		}
+		}		
 		return fav;
 	}
 	
 	//좋아요 삭제
-	public void deleteFav(BoardFavVO favVO) throws Exception{
+	public void deleteFav(BoardFavVO favVO)throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		String sql = null;
 		
 		try {
+			//커넥션풀로부터 커넥션 할당
 			conn = DBUtil.getConnection();
+			//SQL문 작성
 			sql = "DELETE FROM zboard_fav WHERE board_num=? AND mem_num=?";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
+			//?에 데이터 바인딩
 			pstmt.setInt(1, favVO.getBoard_num());
 			pstmt.setInt(2, favVO.getMem_num());
+			//SQL문 실행
 			pstmt.executeUpdate();
 		}catch(Exception e) {
 			throw new Exception(e);
@@ -384,7 +439,8 @@ public class BoardDAO {
 	}
 	
 	//내가 선택한 좋아요 목록
-	public List<BoardVO> getListBoardFav(int start,int end,int mem_num)throws Exception{
+	public List<BoardVO> getListBoardFav(int start, int end,
+			                       int mem_num)throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -392,57 +448,72 @@ public class BoardDAO {
 		String sql = null;
 		
 		try {
+			//커넥션풀로부터 커넥션 할당
 			conn = DBUtil.getConnection();
-			sql = "SELECT * FROM (SELECT a.*, rownum rnum FROM (SELECT * FROM zboard "
-					+ "JOIN zmember USING(mem_num) JOIN zboard_fav f USING(board_num) "
-					+ "WHERE f.mem_num=? ORDER BY board_num DESC)a) WHERE rnum >=? AND rnum <=?";
+			//SQL문 작성
+			sql = "SELECT * FROM (SELECT a.*, rownum rnum FROM "
+				+ "(SELECT * FROM zboard JOIN zmember USING(mem_num) "
+				+ "JOIN zboard_fav f USING(board_num) WHERE f.mem_num=? "
+				+ "ORDER BY board_num DESC)a) WHERE rnum >= ? AND rnum <= ?";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
+			//?에 데이터 바인딩
 			pstmt.setInt(1, mem_num);
 			pstmt.setInt(2, start);
 			pstmt.setInt(3, end);
+			//SQL문 실행
 			rs = pstmt.executeQuery();
 			list = new ArrayList<BoardVO>();
 			while(rs.next()) {
 				BoardVO board = new BoardVO();
 				board.setBoard_num(rs.getInt("board_num"));
-				board.setTitle(StringUtil.useNoHtml(rs.getString("title"))); //HTML불허용
+				board.setTitle(StringUtil.useNoHtml(
+						          rs.getString("title")));
 				board.setReg_date(rs.getDate("reg_date"));
 				board.setId(rs.getString("id"));
 				
 				list.add(board);
 			}
+			
 		}catch(Exception e) {
 			throw new Exception(e);
 		}finally {
 			DBUtil.executeClose(rs, pstmt, conn);
-		}
+		}		
 		return list;
 	}
 	
 	//댓글 등록
-	public void insertReplyBoard(BoardReplyVO boardReply)throws Exception{
+	public void insertReplyBoard(BoardReplyVO boardReply)
+	                                       throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		String sql = null;
 		
 		try {
+			//커넥션풀로부터 커넥션 할당
 			conn = DBUtil.getConnection();
-			sql = "INSERT INTO zboard_reply (re_num,re_content,re_ip,mem_num,board_num) VALUES (zreply_seq.nextval,?,?,?,?)";
+			//SQL문 작성
+			sql = "INSERT INTO zboard_reply (re_num,re_content,"
+				+ "re_ip,mem_num,board_num) VALUES "
+				+ "(zreply_seq.nextval,?,?,?,?)";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
+			//?에 데이터 바인딩
 			pstmt.setString(1, boardReply.getRe_content());
 			pstmt.setString(2, boardReply.getRe_ip());
 			pstmt.setInt(3, boardReply.getMem_num());
 			pstmt.setInt(4, boardReply.getBoard_num());
-			pstmt.executeLargeUpdate();
+			//SQL문 실행
+			pstmt.executeUpdate();
 		}catch(Exception e) {
 			throw new Exception(e);
 		}finally {
 			DBUtil.executeClose(null, pstmt, conn);
 		}
-		
 	}
 	
-	//댓글 개수						부모 글 번호
+	//댓글 개수
 	public int getReplyBoardCount(int board_num)throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
@@ -451,24 +522,31 @@ public class BoardDAO {
 		int count = 0;
 		
 		try {
+			//커넥션풀로부터 커넥션 할당
 			conn = DBUtil.getConnection();
-			sql = "SELECT COUNT(*) FROM zboard_reply JOIN zmember USING(mem_num) WHERE board_num=?";
+			//SQL문 작성
+			sql = "SELECT COUNT(*) FROM zboard_reply JOIN zmember "
+				+ "USING(mem_num) WHERE board_num=?";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
+			//?에 데이터 바인딩
 			pstmt.setInt(1, board_num);
+			//SQL문 실행
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
-				count = rs.getInt(1); //컬럼 인덱스
+				count = rs.getInt(1);
 			}
 		}catch(Exception e) {
-			throw new Exception(e); 
+			throw new Exception(e);
 		}finally {
 			DBUtil.executeClose(rs, pstmt, conn);
-		}
+		}		
 		return count;
 	}
 	
 	//댓글 목록
-	public List<BoardReplyVO> getListReplyBoard(int start,int end,int board_num)throws Exception{
+	public List<BoardReplyVO> getListReplyBoard(int start,int end,
+			                       int board_num)throws Exception{
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -476,44 +554,129 @@ public class BoardDAO {
 		String sql = null;
 		
 		try {
+			//커넥션풀로부터 커넥션 할당
 			conn = DBUtil.getConnection();
-			
-			sql = "SELECT * FROM (SELECT a.*, rownum rnum FROM (SELECT * FROM zboard_reply JOIN zmember USING(mem_num) WHERE board_num=? ORDER BY re_num DESC)a) WHERE rnum>=? AND rnum <=?";
-			
+			//SQL문 작성
+			sql = "SELECT * FROM (SELECT a.*, rownum rnum FROM "
+				+ "(SELECT * FROM zboard_reply JOIN zmember "
+				+ "USING(mem_num) WHERE board_num=? "
+				+ "ORDER BY re_num DESC)a) WHERE rnum >= ? AND rnum <= ?";
+			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
-			
+			//?에 데이터 바인딩
 			pstmt.setInt(1, board_num);
 			pstmt.setInt(2, start);
 			pstmt.setInt(3, end);
-			
+			//SQL문 실행
 			rs = pstmt.executeQuery();
-			
 			list = new ArrayList<BoardReplyVO>();
-			
 			while(rs.next()) {
 				BoardReplyVO reply = new BoardReplyVO();
 				reply.setRe_num(rs.getInt("re_num"));
 				reply.setRe_date(rs.getString("re_date"));
-				if(rs.getString("re_modifydate") != null) {
-					reply.setRe_modifydate(rs.getString("re_modifydate"));
+				if(rs.getString("re_modifydate")!=null) {
+					reply.setRe_modifydate(
+							rs.getString("re_modifydate"));
 				}
-				reply.setRe_content(StringUtil.useBrNoHtml(rs.getString("re_content")));
+				reply.setRe_content(StringUtil.useBrNoHtml(
+						        rs.getString("re_content")));
 				reply.setBoard_num(rs.getInt("board_num"));
 				reply.setMem_num(rs.getInt("mem_num"));
 				reply.setId(rs.getString("id"));
 				
 				list.add(reply);
-			}
-			
+			}			
 		}catch(Exception e) {
-			throw new Exception(e); 
+			throw new Exception();
+		}finally {
+			DBUtil.executeClose(rs, pstmt, conn);
+		}		
+		return list;
+	}
+	
+	//댓글 상세(댓글 수정,삭제시 작성자 회원번호 체크 용도로 사용)
+	public BoardReplyVO getReplyBoard(int re_num)throws Exception{
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		BoardReplyVO reply = null;
+		String sql = null;
+		
+		try {
+			//커넥션 풀로부터 커넥션 할당
+			conn = DBUtil.getConnection();
+			//SQL문 작성
+			sql = "SELECT * FROM zboard_reply WHERE re_num=?";
+			//PreparedStatement 객체 생성
+			pstmt = conn.prepareStatement(sql);
+			//?에 데이터 바인딩
+			pstmt.setInt(1, re_num);
+			//SQL문을 실행해서 결과행을 rs에 담음
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()) {
+				reply = new BoardReplyVO();
+				reply.setRe_num(rs.getInt("re_num"));
+				reply.setMem_num(rs.getInt("mem_num"));
+			}
+		}catch(Exception e) {
+			throw new Exception(e);
 		}finally {
 			DBUtil.executeClose(rs, pstmt, conn);
 		}
-		
-		return list;
+		return reply;
 	}
-	//댓글 상세(댓글 수정, 삭제시 작성자 회원번호 체크 용도로 사용)
+	
 	//댓글 수정
+	public void updateReplyBoard(BoardReplyVO reply)throws Exception{
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		String sql = null;
+		
+		try {
+			conn = DBUtil.getConnection();
+			sql = "UPDATE zboard_reply SET re_content=?,re_modifydate=SYSDATE,re_ip=? WHERE re_num=?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, reply.getRe_content());
+			pstmt.setString(2, reply.getRe_ip());
+			pstmt.setInt(3, reply.getRe_num());
+			pstmt.executeUpdate();
+		}catch(Exception e) {
+			throw new Exception(e);
+		}finally {
+			DBUtil.executeClose(null, pstmt, conn);
+		}
+	}
+	
 	//댓글 삭제
+	 public void deleteReplyBoard(int re_num)throws Exception{
+		 Connection conn = null;
+	     PreparedStatement pstmt = null;
+	     String sql = null;
+	      
+	     try {
+	        //커넥션풀로부터 커넥션 할당
+	        conn = DBUtil.getConnection();
+	        //SQL문 작성
+	        sql = "DELETE FROM zboard_reply WHERE re_num=?";
+	        //PreparedStatement 객체 생성
+	        pstmt = conn.prepareStatement(sql);
+	        //?에 데이터 바인딩
+	        pstmt.setInt(1, re_num);
+	        //SQL문 실행
+	        pstmt.executeUpdate();
+	      }catch(Exception e) {
+	         throw new Exception(e);
+	      }finally {
+	         DBUtil.executeClose(null, pstmt, conn);
+	      }
+	   }
+	
 }
+
+
+
+
+
+
+
