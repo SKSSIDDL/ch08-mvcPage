@@ -10,12 +10,20 @@
 		<li>
 			<a href="${pageContext.request.contextPath}/board/list.do">게시판</a>
 		</li>
+		<li>
+			<a href="${pageContext.request.contextPath}/item/itemList.do">상품목록</a>
+		</li>
 		
+		<%-- 관리자로만 로그인해야 보여지는 header 시작 --%>
 		<c:if test="${!empty user_num && user_auth ==9}">
 			<li>
 				<a href="${pageContext.request.contextPath}/member/adminList.do">회원관리</a>
 			</li>
+			<li>
+				<a href="${pageContext.request.contextPath}/item/adminList.do">상품관리</a>
+			</li>
 		</c:if>
+		<%-- 관리자로만 로그인해야 보여지는 header 끝 --%>
 		
 		<c:if test="${!empty user_num}">
 			<li><a href="${pageContext.request.contextPath}/member/myPage.do">MY페이지</a></li>		

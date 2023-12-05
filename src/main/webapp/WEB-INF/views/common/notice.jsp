@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>    
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,11 +11,21 @@
 <body>
 	<div class="page-main">
 		<jsp:include page="/WEB-INF/views/common/header.jsp"/>
-		<div class="reuslt-display">
+		<div class="result-display">
 			<div class="align-center">
-				잘못된 접속입니다.
+				<c:if test="${!empty accessMsg}">
+					${accessMsg}
+				</c:if>
+				<c:if test="${empty accessMsg}">
+					잘못된 접속입니다.
+				</c:if>
 				<p>
+				<c:if test="${!empty accessUrl}">
+					<input type="button" value="이동" onclick="location.href='${accessUrl}'">
+				</c:if>
+				<c:if test="${empty accessUrl}">
 					<input type="button" value="홈으로" onclick="location.href='${pageContext.request.contextPath}/main/main.do'">
+				</c:if>
 				</p>
 			</div>
 		</div>
