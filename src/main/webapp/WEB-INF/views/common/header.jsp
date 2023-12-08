@@ -26,6 +26,7 @@
 		<%-- 관리자로만 로그인해야 보여지는 header 끝 --%>
 		
 		<c:if test="${!empty user_num}">
+			<li><a href="${pageContext.request.contextPath}/cart/list.do">장바구니</a></li>		
 			<li><a href="${pageContext.request.contextPath}/member/myPage.do">MY페이지</a></li>		
 		</c:if>
 		
@@ -37,7 +38,8 @@
 			<li class="menu-profile"><img src="${pageContext.request.contextPath}/images/face.png" width="25" height="25" class="my-photo"></li>
 		</c:if>
 		
-		<c:if test="${!empty user_num}"> <%--로그인 되어있을 때 --%>
+		<%--로그인 되어있을 때 --%>
+		<c:if test="${!empty user_num}"> 
 			<li class="menu-logout">
 				[<span>${user_id}</span>]
 				<a href="${pageContext.request.contextPath}/member/logout.do">로그아웃</a>

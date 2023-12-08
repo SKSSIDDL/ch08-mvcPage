@@ -85,6 +85,23 @@ a:hover{
 }
 /* 메인
 ------------------------------*/
+.image-space .horizontal-area{
+	margin:2px;
+	padding:3px;
+	width:220px;
+	height:240px;
+	float:left;
+	overflow:hidden;
+	text-align:center;
+}
+.image-space .horizontal-area img{
+	width:215px;
+	height:195px;
+}
+.image-space .float-clear{
+	clear:both;
+}
+
 /* 공통 등록, 수정 폼
 ------------------------------*/
 form{
@@ -160,7 +177,7 @@ input[type="number"]{
 	opacity:0.65;
 	transform:scale(0.85) translateY(-0.5rem) translateX(-0.5rem);
 }
-/* 마이페이지
+/* MY페이지
 ------------------------------*/
 .mypage-div{
 	width:48%;
@@ -171,19 +188,21 @@ input[type="number"]{
 	clear:both;
 }
 .my-photo{
-	object-fit:cover; 
-	/*정사각형이 아니라 직사각형일 경우 원안에 보여지게 할 중심 이미지의 위치를 지정*/
+	object-fit:cover;
+	/*정사각형이 아니라 직사각형일 경우 원 안에 보여지게 할 중심 이미지의
+	위치를 지정*/
 	object-position:top;
-	/*사각형의 모서리 둥근 정도를 지정하는 속성 50%를 지정하면 완전한 원이 됨*/
+	/*사각형의 모서리 둥근 정도를 지정하는 속성인데 50%를 지정하면
+	완전한 원이 됨*/
 	border-radius:50%;
 }
-/* 공통 등록, 수정 폼
+/* 공통 목록
 ------------------------------*/
 form#search_form{
 	border:none;
 }
-ul.serach{
-	width:340;
+ul.search{
+	width:340px;
 	list-style:none;
 	padding:0;
 	margin:0 auto;
@@ -243,9 +262,9 @@ form#re_form{
 	width:650px;
 	border:none;
 }
-span.re_title{
-	font-size:12pt;
+span.re-title{
 	color:#000;
+	font-size:12pt;
 	line-height:200%;
 }
 span.letter-count{
@@ -263,7 +282,7 @@ div#re_first, div#mre_first{
 	padding-left:15px;
 	margin-bottom:10px;
 }
-div#re_second, div#mre-second{
+div#re_second, div#mre_second{
 	float:left;
 	width:19%;
 	margin-bottom:10px;
@@ -281,28 +300,58 @@ form#mre_form{
 	border:none;
 	margin:5px;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/* 상품
+------------------------------*/
+.item-space .horizontal-area{
+	margin:2px;
+	padding:3px;
+	width:200px;
+	height:220px;
+	float:left;
+	overflow:hidden;
+	text-align:center;
+}
+.item-space .horizontal-area img{
+	width:195px;
+	height:175px;
+}
+.item-space .horizontal-area span{
+	padding:5px;
+	margin:5px;
+}
+label[for="order_quantity"]{
+	width:80px;
+}
+.item-image{
+	width:400px;
+	margin:0 0 10px 0;
+	float:left;
+}
+.item-detail li{
+	padding:0 0 5px 0;
+}
+.item-detail form{
+	border:none;
+	width:470px;
+	margin:0;
+	float:left;
+}
+#item_total_txt{
+	color:#000;
+	font-weight:bold;
+}
+input[type="number"].quantity-width{
+	width:40px;
+	margin-bottom:3px;
+}
+.sold-out{
+	color:red;
+}
+/* 장바구니
+------------------------------*/
+form[id="cart_order"]{
+	border:none;
+}
 
 
 
