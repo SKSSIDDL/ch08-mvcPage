@@ -45,4 +45,30 @@ $(function(){
 			}
 		});
 	});
+	
+	/* ============================================
+	 * 장바구니 상품 삭제
+	 * ============================================*/
+	$('.cart-del').on('click', function(){
+		//서버와 통신
+		$.ajax({
+			url:'deleteCart.do',
+			type:'post',
+			data:{cart_num:$(this).attr('data-cartnum')},
+			dataType:'json',
+			success:function(param){
+				if(param.result =='logout'){
+					alert('로그인 후 사용하세요');
+				}else if(param.result == 'success'){
+					alert('선택하신 상품을 삭제했습니다');
+					location.href='list.do';
+				}else{
+					alert('장바구니 상품 삭제 오류');
+				}
+			},
+			error:function(){
+				alert('네트워크 오류 발생');
+			}
+		});
+	});
 });

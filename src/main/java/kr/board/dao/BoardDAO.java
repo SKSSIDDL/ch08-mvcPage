@@ -258,7 +258,8 @@ public class BoardDAO {
 				sub_sql += ",filename=?";
 			}
 			//SQL문 작성
-			sql = "UPDATE zboard SET title=?,content=?,modify_date=SYSDATE,ip=?" + sub_sql + " WHERE board_num=?";
+			sql = "UPDATE zboard SET title=?,content=?,modify_date=SYSDATE,ip=?" 
+					+ sub_sql + " WHERE board_num=?";
 			//PreparedStatement 객체 생성
 			pstmt = conn.prepareStatement(sql);
 			//?에 데이터 바인딩

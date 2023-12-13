@@ -189,6 +189,23 @@ public class CartDAO {
 	}
 	
 	//장바구니 삭제
-	
+	public void deleteCart(int cart_num)throws Exception{
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		String sql = null;
+		
+		try{
+			conn = DBUtil.getConnection();
+			sql = "DELETE FROM zcart WHERE cart_num=?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, cart_num);
+			pstmt.executeUpdate();
+			
+		}catch(Exception e) {
+			throw new Exception(e);
+		}finally {
+			DBUtil.executeClose(null, pstmt, conn);
+		}
+	}
 }
 
